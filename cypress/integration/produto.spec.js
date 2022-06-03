@@ -1,5 +1,5 @@
 /// <reference types="cypress" />
-import contrato from '../contracts/produtos.contracts'
+import contrato from '../contracts/login.contracts'
 
 describe('Testes de Funcionalidade Produtos', () => {
      let token
@@ -8,37 +8,36 @@ describe('Testes de Funcionalidade Produtos', () => {
     })
  
 
-    it.only('Deve validar contrato de produtos', () => {
-        cy.request('produtos').then(response => {
+    it('Deve validar contrato de usuário', () => {
+        cy.request('usuarios').then(response => {
             return contrato.validateAsync(response.body)
         })
         
     });
 
 
-    it('Listar produtos', () => {
+    it('Listar usuários cadastrados', () => {
         cy.request({
             method: 'GET',
-            url:'http://localhost:3000/produtos'
+            url:'usuarios'
         }).then((response) => {
-            expect(response.body.produtos[4].nome).to.equal('Produto EBAC 5753735')
             expect(response.status).to.equal(200)
+            expect(response.body).to.have.property('usuarios')
+            expect(response.body).to.have.property('quantidade')
         })
-        
     });
 
-    it('Cadastrar produto', () => {
-        let produto = `Produto EBAC ${Math.floor(Math.random()* 10000000)}`
+    it('Cadastrar usuário com sucesso', () => {
         cy.request({
             method:'POST',
-            url: 'produtos',
+            url: 'usuarios',
             body:{
-                "nome": produto,
-                "preco": 3499,
-                "descricao": "Curso",
-                "quantidade": 200
+                "nome": 'Madia Eduarda',
+                "email": 'duda2@ebac.com',
+                "password": "teste",
+                "administrador": "true"
             },
-            headers: {authorization: token}
+            //headers: {authorization: token}
 
         }).then((response) =>{
             expect(response.status).to.equal(201)
@@ -47,16 +46,24 @@ describe('Testes de Funcionalidade Produtos', () => {
         
     });
 
-    it('Deve validar mensagem de erro ao cadastrar produto repetido', () => {
-        cy.cadastrarProduto(token, "produto EBAC 456", "3499", "Curso", "200")
-                
-        .then((response) =>{
+    it.only('Validar um usuário com email inválido', () => {
+        cy.request({
+            failOnStatusCode: false,
+            method:'POST',
+            url: 'usuarios',
+            body:{
+                "nome": 'Madia Eduarda',
+                "email": 'duda2ebac.com',
+                "password": "teste",
+                "administrador": "true"
+            },
+        }).then((response) => {
             expect(response.status).to.equal(400)
-            expect(response.body.message).to.equal('Já existe produto com esse nome')  
+            expect(response.body.email).to.equal("email deve ser um email válido")  
         })
     });
 
-    it('Deve editar um produto já cadastrado', () => {
+    it('Deve editar um usuário previamente cadastrado', () => {
         cy.request('produtos').then(response => {
             let id = response.body.produtos[24]._id
             cy.request({
@@ -78,7 +85,7 @@ describe('Testes de Funcionalidade Produtos', () => {
 
     });
 
-    it('Deve editar um produto cadastrado previamente', () => {
+    it('Deve deletar um usuário previamente cadastrado', () => {
         let produto = `Produto EBAC ${Math.floor(Math.random()* 10000000)}`
         cy.cadastrarProduto(token, produto, "5000", "Curso", "200")
         .then(response => {
