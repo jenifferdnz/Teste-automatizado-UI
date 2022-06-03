@@ -7,7 +7,7 @@ describe('Deve fazer login com sucesso', () => {
             method: 'POST',
             url:'localhost:3000/login',
             body: {
-                "email": "n",
+                "email": "fulano@qa.com",
                 "password": "teste"
              }
         }).then((response) => {
